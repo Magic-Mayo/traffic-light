@@ -26,6 +26,7 @@ const right = [0,0,1];
 const right2 = [0,1,1];
 const none = [0,0,0];
 const all = [1,1,1];
+const space = [0,0]
 
 const letters = {
     a: [middle, outer, all, outer, outer],
@@ -40,7 +41,7 @@ const letters = {
     j: [right, right, right,right, left2],
     k: [outer,outer,left2,outer,outer],
     l: [left,left,left,left,all],
-    m: [[...left2].push(0,1), [...outer].push(0,1),[...outer].push(0,1),[...outer].push(0,1),[...outer].push(0,1)],
+    m: [[...left2,0,1], [...outer,0,1],[...outer,0,1],[...outer,0,1],[...outer,0,1]],
     n: [left2, outer,outer,outer,outer],
     o: [middle, outer,outer,outer,middle],
     p: [left2, outer,left2, left, left],
@@ -50,9 +51,11 @@ const letters = {
     t: [all,middle,middle,middle,middle],
     u: [outer,outer,outer,outer,all],
     v: [outer,outer,outer,outer,middle],
+    w: [[...outer,0,1],[...outer,0,1],[...outer,0,1],[...outer,0,1],[...middle,1]],
     x: [outer,outer,middle,outer,outer],
     y: [outer,outer,middle,middle,middle],
-    z: [all, right,middle,left,all]
+    z: [all, right,middle,left,all],
+    32: [space,space]
 }
 
 const setSize = () => {
@@ -120,26 +123,55 @@ const resetBoard = () => {
 }
 
 const updateMatrix = ({letter, ...rest}) => {
-    if(letter){
-        const l = letters[letter.toLowerCase()];
+    if(letter === '' && wordsDisplayed.letters.length > 0){
+        wordsDisplayed.letters.splice(0);
+        wordsDisplayed.totalDots.splice(0);
+        selectors().board.innerHTML = '';
+        showBoard(getSize());
+    } else if(letter){
+        letter = letter.split('').pop();
+        const l = letter !== ' ' ? letters[letter.toLowerCase()] : letters['32'];
         const width = l[0].length;
         const size = getSize();
-        const curCol = wordsDisplayed.totalDots[wordsDisplayed.totalDots.length-1];
-
-        if(curCol.length + width < size.width){
-            curCol.push(l)
-            wordsDisplayed.letters.push(letter);
+        const dots = wordsDisplayed.totalDots;
+        const numCols = dots.length;
+        if(numCols === 0){
+            dots.push(0);
         }
+
+        const curRow = dots[dots.length-1];
+
+        if(curRow + width === size.width && l){
+            dots[dots.length-1] += width;
+        } else if(curRow + width < size.width){
+            dots[dots.length-1] += width+1;
+        } else {
+            dots.push(width);
+        }
+console.log(curRow)
+        for(let col=numCols; col<numCols+width;col++){
+            for(let row=curRow;row<curRow+5;row++){
+                console.log(col,row)
+                document.querySelector(`[data-led="${col*row}"]`).click();
+            }
+        }
+        wordsDisplayed.letters.push(letter);
     } else {
-        Object.entries(rest).forEach(([k,colors]) => matrix[k] = colors);
+        Object.entries(rest).forEach(([k,colors]) => matrix[k-1] = colors);
     }
 }
 
 const display = e => {
     const toDisplay = e.target.value;
+    const dots = wordsDisplayed.totalDots;
+    const numCols = dots.length;
+    const size = getSize();
 
-    clearTimeout(debounce);
-    debounce = setTimeout(() => updateMatrix({letter: toDisplay}), 2000);
+    if(toDisplay && numCols*5 + numCols + 5 > size.height){
+        e.target.value = toDisplay.substring(0,toDisplay.length-1);
+    } else {
+        updateMatrix({letter: toDisplay});
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -147,7 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
     submitSize.addEventListener('click', setSize);
     reset.addEventListener('click', resetBoard);
     colors.forEach(el => el.addEventListener('change', changePallette));
-    keyboard.addEventListener('change', display)
+    keyboard.addEventListener('input', display)
     const sizeSet = getSize();
     if(sizeSet) showBoard(sizeSet);
 });
