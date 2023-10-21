@@ -32,17 +32,12 @@
         </div>
         <div class="board-wrapper align-items-center flex-column d-none">
             <div class="lights border p-1 m-3 rounded"></div>
-            <div class="input-group align-items-center w-50">
-                <span class="input-group-text">Red</span>
-                <input type="number" id="red" min="0" max="255" value="0" class="form-control color">
-                <span class="input-group-text">Green</span>
-                <input type="number" min="0" id="green" max="255" value="0" class="form-control color">
-                <span class="input-group-text">Blue</span>
-                <input type="number" min="0" max="255" id="blue" value="0" class="form-control color">
-                <button class="input-group-text reset btn btn-outline-secondary">Reset</button>
+            <div class="input-group w-50">
+                <button class="btn btn-lg btn-outline-secondary input-group-text">Color</button>
+                <input type="color" class="form-control"/>
             </div>
             <input type="text" class="keyboard form-control my-4 w-75" placeholder="Write something..." />
-            <div class="pallette"></div>
+            <button class="reset btn btn-outline-secondary">Reset</button>
         </div>
     </div>
 <script src="index.js"></script>
