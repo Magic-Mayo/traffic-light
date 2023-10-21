@@ -162,7 +162,7 @@ const updateMatrix = ({letter, undo, ...rest}) => {
 
         l.forEach((row, ri) =>
             row.forEach((b, ci) =>
-                b && document.querySelector(`[data-led="${((dots.length-1)*5+(dots.length === 1 ? ri : ri+1))*64+(curCol+ci%64)}"]`).click()
+                b && document.querySelector(`[data-led="${((dots.length-1)*5+(dots.length === 1 ? ri : ri+dots.length-1))*64+(curCol+ci%64)}"]`).click()
         ));
 
         wordsDisplayed.letters.push(letter);
