@@ -168,8 +168,11 @@ const updateMatrix = ({letter, undo, ...rest}) => {
         wordsDisplayed.letters.push(letter);
     } else if(undo !== undefined){
         const l = undo !== ' ' ? letters[undo.toLowerCase()] : letters['32'];
-        const curRow = (wordsDisplayed.totalDots.length-1)*5;
-        const dots = wordsDisplayed.totalDots[wordsDisplayed.totalDots.length-1]-1-l[0].length;
+        let dots = wordsDisplayed.totalDots[wordsDisplayed.totalDots.length-1]-1-l[0].length;
+        console.log(dots<0)
+        const curRow = (wordsDisplayed.totalDots.length-1)*5 - dots < 0 ? 1 : 0;
+        if(dots < 0) dots += 64;
+        console.log(dots, curRow, l[0].length)
         l.forEach((row, ri) =>
             row.forEach((b, ci) =>
                 b && document.querySelector(`[data-led="${(curRow+(wordsDisplayed.totalDots.length === 1 ? ri : ri+1))*64+(dots+ci%64)}"]`).click()
@@ -196,11 +199,26 @@ const display = e => {
     } else if((toDisplay && numCols*5 + numCols + 5 > size.height) || (next !== ' ' && letters[next] === undefined)){
         e.target.value = toDisplay.substring(0,toDisplay.length-1);
     } else {
-        const newLetter = {};
-        if(debounce > toDisplay.length) newLetter.undo = wordsDisplayed.letters[wordsDisplayed.letters.length-1];
-        else newLetter.letter = toDisplay;
-        updateMatrix(newLetter);
-        debounce = toDisplay.length
+        clearInterval(debounce);
+        debounce = setTimeout(() => {
+            const word = toDisplay.split('');
+            let undo = false;
+
+            if(wordsDisplayed.letters.length > toDisplay.length){
+                word.splice(0);
+                word.push(...wordsDisplayed.letters.slice(toDisplay.length - wordsDisplayed.letters.length).reverse());
+                undo = true;
+            } else if(wordsDisplayed.letters.length > 0){
+                word.splice(0, wordsDisplayed.letters.length);
+            }
+
+            word.forEach(l => {
+                const newLetter = {};
+                if(undo) newLetter.undo = l;
+                else newLetter.letter = l;
+                updateMatrix(newLetter);
+            });
+        }, 1000)
     }
 }
 
