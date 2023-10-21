@@ -148,11 +148,11 @@ const updateMatrix = ({letter, ...rest}) => {
         } else {
             dots.push(width);
         }
-console.log(curRow)
-        for(let col=numCols; col<numCols+width;col++){
-            for(let row=curRow;row<curRow+5;row++){
-                console.log(col,row)
-                document.querySelector(`[data-led="${col*row}"]`).click();
+
+
+        for(let col=dots.length||1; col<(dots.length||1)+width;col++){
+            for(let rows=dots[dots.length-1]; rows<dots[dots.length-1]+5; rows++){
+                l.forEach((b,i) => b && document.querySelector(`[data-led="${(col+i)*rows}"]`).click());
             }
         }
         wordsDisplayed.letters.push(letter);
