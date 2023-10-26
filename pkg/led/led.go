@@ -2,18 +2,9 @@ package led
 
 import (
 	"errors"
+	"flag"
 
-	"github.com/Magic-Mayo/traffic-light/internal/utils"
-)
-
-var (
-	Width          = 8
-	Height         = 4 // Use 1 for LED strip
-	ledCount       = Width * Height
-	InitBrightness = 75
-	shouldPanic    = utils.ShouldPanic
-	Gpio           = 18
-	Freq           = 800000
+	rgbmatrix "github.com/mcuadros/go-rpi-rgb-led-matrix"
 )
 
 type ws interface {
@@ -39,20 +30,43 @@ type LED struct {
 	L
 }
 
+var (
+	config = &rgbmatrix.HardwareConfig{}
+)
+
+func init() {
+	flag.IntVar(&config.Rows, "led-rows", 32, "number of rows supported")
+	flag.IntVar(&config.Cols, "led-cols", 64, "number of columns supported")
+	flag.IntVar(&config.Parallel, "led-parallel", 1, "number of daisy-chained panels")
+	flag.IntVar(&config.ChainLength, "led-chain", 1, "number of displays daisy-chained")
+	flag.IntVar(&config.Brightness, "brightness", 100, "brightness (&config.0-100)")
+	flag.StringVar(&config.HardwareMapping, "led-gpio-mapping", "regular", "Name of GPIO mapping used.")
+	flag.BoolVar(&config.Refresh, "led-show-refresh", false, "Show refresh rate.")
+	flag.BoolVar(&config.InverseColors, "led-inverse", false, "Switch if your matrix has inverse colors on.")
+	flag.BoolVar(&config.DisableHardwarePulsing, "led-no-hardware-pulse", false, "Don't use hardware pin-pulse generation.")
+
+}
+
 // Initializes LED board and panics with an error
 func Initialize() *LED {
-	var err error
+	config := &rgbmatrix.DefaultConfig
+	config.Rows = *rows
+	config.Cols = *cols
+	config.Parallel = *parallel
+	config.ChainLength = *chain
+	config.Brightness = *brightness
+	config.HardwareMapping = *hardware_mapping
+	config.ShowRefreshRate = *show_refresh
+	config.InverseColors = *inverse_colors
+	config.DisableHardwarePulsing = *disable_hardware_pulsing
 
-	led := LED{
-		LedMatrix: map[int]uint32{},
+	m, err := rgbmatrix.NewRGBLedMatrix(config)
+
+	if err != nil {
+		panic(err)
 	}
 
-	shouldPanic(err)
-	shouldPanic(led.Init())
-	led.InitMatrix()
-	shouldPanic(led.Render())
-	shouldPanic(led.Wait())
-	return &led
+	return &m
 }
 
 // Sets brightness of the LED board. Accepts 0-255
